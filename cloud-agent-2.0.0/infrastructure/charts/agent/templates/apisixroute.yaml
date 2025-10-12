@@ -1,0 +1,169 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: agent-route
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+spec:
+  http:
+  - name: agent-rule
+    match:
+      hosts:
+      {{- range .Values.ingress.applicationUrls }}
+        - {{ . }}
+      {{- end }}
+      paths:
+      - /{{ include "cloud-agent.name" . }}/*
+    backends:
+       - serviceName: agent-server-tapir-service
+         servicePort: 8085
+    authentication:
+      enable: {{ .Values.ingress.auth.enable }}
+      type: keyAuth
+    plugins:
+    - name: proxy-rewrite
+      enable: true
+      config:
+        regex_uri: ["^/({{ include "cloud-agent.name" . }})/(.*)","/$2"]
+    - name: uri-blocker
+      enable: true
+      config:
+        block_rules: ["_system/metrics"]
+        rejected_message: "access to metrics resource is not allowed from an external location"
+    {{- template "cors" . }}
+    {{- template "consumer-restriction" . }}
+    {{- template "headers.requestId" . }}
+    {{- template "headers.security" . }}
+
+---
+
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: agent-didcomm-route
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    {{- include "labels.common" . | nindent 4}}
+spec:
+  http:
+  - name: agent-didcomm-rule
+    match:
+      hosts:
+      {{- range .Values.ingress.applicationUrls }}
+        - {{ . }}
+      {{- end }}
+      paths:
+      - /{{ include "cloud-agent.name" . }}/didcomm*
+    backends:
+      - serviceName: agent-server-didcomm-service
+        servicePort: 8090
+    plugins:
+    - name: proxy-rewrite
+      enable: true
+      config:
+        regex_uri: ["^/({{ include "cloud-agent.name" . }})/didcomm(.*)", "/$2"]
+    {{- template "cors" . }}
+    {{- template "headers.requestId" . }}
+    {{- template "headers.security" . }}
+
+---
+
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: agent-schema-registry-route
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+spec:
+  http:
+  - name: agent-schema-registry-rule
+    match:
+      hosts:
+      {{- range .Values.ingress.applicationUrls }}
+        - {{ . }}
+      {{- end }}
+      paths:
+      - /{{ include "cloud-agent.name" . }}/schema-registry/schemas/*
+      methods:
+      - GET
+    backends:
+      - serviceName: agent-server-tapir-service
+        servicePort: 8085
+    plugins:
+    - name: proxy-rewrite
+      enable: true
+      config:
+        regex_uri: ["^/({{ include "cloud-agent.name" . }})/schema-registry/schemas/(.*)", "/schema-registry/schemas/$2"]
+    {{- template "cors" . }}
+    {{- template "headers.requestId" . }}
+    {{- template "headers.security" . }}
+
+---
+
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: agent-cred-def-registry-route
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+spec:
+  http:
+  - name: agent-cred-def-registry-rule
+    match:
+      hosts:
+      {{- range .Values.ingress.applicationUrls }}
+      - {{ . }}
+      {{- end }}
+      paths:
+        - /{{ include "cloud-agent.name" . }}/credential-definition-registry/definitions/*
+      methods:
+        - GET
+    backends:
+      - serviceName: agent-server-tapir-service
+        servicePort: 8085
+    plugins:
+    - name: proxy-rewrite
+      enable: true
+      config:
+        regex_uri: ["^/({{ include "cloud-agent.name" . }})/credential-definition-registry/definitions/(.*)", "/credential-definition-registry/definitions/$2"]
+    {{- template "cors" . }}
+    {{- template "headers.requestId" . }}
+    {{- template "headers.security" . }}
+
+---
+
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: agent-docs-route
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+spec:
+  http:
+  - name: agent-docs-rule
+    match:
+      hosts:
+      {{- range .Values.ingress.applicationUrls }}
+        - {{ . }}
+      {{- end }}
+      paths:
+      - /{{ include "cloud-agent.name" . }}/docs/*
+    backends:
+      - serviceName: agent-server-tapir-service
+        servicePort: 8085
+    plugins:
+    - name: proxy-rewrite
+      enable: true
+      config:
+        regex_uri: ["^/({{ include "cloud-agent.name" . }})/docs/(.*)","/docs/$2"]
+    {{- template "cors" . }}
+    {{- template "headers.requestId" . }}
+    {{- template "headers.security" . }}
+
+---
+{{- end }}

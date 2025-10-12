@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  atala-structurizr-lite:
+    image: atala-structurizr-lite
+    ports:
+      - "8080:8080"
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8081:8080"
+    volumes:
+      - ../commons:/usr/share/nginx/html/commons
+    environment:
+      URLS: '[
+        { name: "Mob Sessions", url: "/commons/atala-openapi.yaml" }
+        ]'

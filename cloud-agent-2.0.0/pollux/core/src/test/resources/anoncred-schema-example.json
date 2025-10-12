@@ -1,0 +1,12 @@
+{
+  "name": "Driving licence Anoncred Schema",
+  "version": "1.0",
+  "attrNames": [
+    "emailAddress",
+    "familyName",
+    "dateOfIssuance",
+    "drivingLicenseID",
+    "drivingClass"
+  ],
+  "issuerId": "http://www.example.com/issuer"
+}

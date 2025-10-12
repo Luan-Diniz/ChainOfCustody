@@ -1,0 +1,17 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: apisix.apache.org/v2
+kind: ApisixTls
+metadata:
+  name: "{{ include "cloud-agent.name" . }}-base-path-tls"
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    {{- include "labels.common" . | nindent 4}}
+spec:
+  hosts:
+  {{- range .Values.ingress.applicationUrls }}
+    - {{ . }}
+  {{- end }}
+  secret:
+    name: "{{ include "cloud-agent.name" . }}-base-path-secret"
+    namespace: "{{ .Release.Namespace }}"
+{{- end }}

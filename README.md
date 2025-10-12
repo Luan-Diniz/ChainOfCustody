@@ -8,21 +8,30 @@ Chain of Custody PoC using Hyperledger Fabric with access control by Hyperledger
     cd FabricChainofCustody
     ./run.sh
 
+## Sets up Identus Agents
+    From root project folder at terminal 2:
+    cd cloud-agent-2.0.0/examples/st-multi
+    docker compose up -d
 
 ## Sets up SSI-App services:
-    From root project folder at terminal 2:
+    From root project folder at terminal 3:
     cd SSI-App
     ./start_services.sh 
 
 ## Holder interface
-    From root project folder at terminal 3:
+    From root project folder at terminal 4:
     cd SSI-App
     python3 holder/holder_interface.py
 
 ## Issuer interface
-    From root project folder at terminal 4:
+    From root project folder at terminal 5:
     cd SSI-App
     python3 issuer/issuer_interface.py
+
+# Cleaning environment:
+    At ./FabricChainofCustody there is a stop.sh.
+    At ./cloud-agent-2.0.0/examples/st-multi run docker compose down -v 
+    At ./SSI-App run ./stop_services.sh
 
 # Demo:
     1. Start all services described above.
@@ -33,4 +42,4 @@ Chain of Custody PoC using Hyperledger Fabric with access control by Hyperledger
     6. Now the Holder can create evidences and perform other operations using
     the Chain of Custody App.
 
-# ToDo:  -python requirements and add link to fabrics requisites.
+# ToDo:  -python requirements and add link to fabrics requisites. Add link to identus repository

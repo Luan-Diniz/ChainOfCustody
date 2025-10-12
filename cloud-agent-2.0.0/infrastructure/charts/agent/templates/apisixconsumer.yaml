@@ -1,0 +1,35 @@
+{{- if .Values.ingress.enabled }}
+{{- $root := . -}}
+{{- range $consumer := .Values.ingress.auth.consumers }}
+apiVersion: apisix.apache.org/v2
+kind: ApisixConsumer
+metadata:
+  name: "{{ $consumer | lower }}"
+  namespace: "{{ $root.Release.Namespace }}"
+  labels:
+    {{- include "labels.common" $root | nindent 4 }}
+spec:
+  authParameter:
+    keyAuth:
+      secretRef:
+        name: "{{ $root.Release.Namespace }}-{{ $consumer | lower }}"
+---
+{{- end }}
+{{- end }}
+
+{{- $root := . -}}
+{{- range $consumer := .Values.ingress.auth.externalConsumers }}
+apiVersion: apisix.apache.org/v2
+kind: ApisixConsumer
+metadata:
+  name: "{{ $consumer | lower }}"
+  namespace: "{{ $root.Release.Namespace }}"
+  labels:
+    {{- include "labels.common" $root | nindent 4 }}
+spec:
+  authParameter:
+    keyAuth:
+      secretRef:
+        name: "{{ $root.Values.ingress.auth.externalConsumerKeyPrefix }}-{{ $consumer | lower }}"
+---
+{{- end }}

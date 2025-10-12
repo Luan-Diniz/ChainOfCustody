@@ -1,0 +1,90 @@
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+  name: "{{ .Values.database.postgres.managingTeam }}-{{ include "cloud-agent.name" . }}-postgres-cluster"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+spec:
+  teamId: "{{ .Values.database.postgres.managingTeam }}"
+  volume:
+    size: "{{ .Values.database.postgres.databaseSize }}"
+  numberOfInstances: {{ .Values.database.postgres.numberOfInstances }}
+  nodeAffinity:
+    {{- toYaml .Values.affinity.nodeAffinity | nindent 4 }}
+  tolerations:
+    {{- toYaml .Values.tolerations | nindent 4 }}
+  resources:
+    {{- toYaml .Values.database.postgres.resources | nindent 4 }}
+  users:
+    pollux-admin:
+      - superuser
+      - createdb
+    pollux-application-user:
+      - login
+    connect-admin:
+      - superuser
+      - createdb
+    connect-application-user:
+      - login
+    agent-admin:
+      - superuser
+      - createdb
+    agent-application-user:
+      - login
+  databases:
+    pollux: pollux-admin
+    connect: connect-admin
+    agent: agent-admin
+  postgresql:
+    version: "14"
+{{- if .Values.database.postgres.metrics.enabled }}
+  sidecars:
+    - name: exporter
+      image: "{{ .Values.database.postgres.metrics.image.repository }}/{{ .Values.database.postgres.metrics.image.tag }}:{{ .Values.database.postgres.metrics.image.version }}"
+      args:
+        - --collector.stat_statements
+      ports:
+        - name: exporter
+          containerPort: 9187
+          protocol: TCP
+      resources:
+        limits:
+          cpu: 500m
+          memory: 256M
+        requests:
+          cpu: 100m
+          memory: 256M
+      env:
+        - name: DATA_SOURCE_URI
+          value: "127.0.0.1:5432"
+        - name: DATA_SOURCE_USER
+          value: "$(POSTGRES_USER)"
+        - name: DATA_SOURCE_PASS
+          value: "$(POSTGRES_PASSWORD)"
+{{- end }}
+
+{{- if .Values.keycloak.enabled }}
+---
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+  name: "{{ .Values.database.postgres.managingTeam }}-keycloak-postgres-cluster"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels.common" . | nindent 4 }}
+spec:
+  teamId: "{{ .Values.database.postgres.managingTeam }}"
+  volume:
+    size: "{{ .Values.database.postgres.databaseSize }}"
+  numberOfInstances: {{ .Values.database.postgres.numberOfInstances }}
+  users:
+    keycloak-admin:
+      - superuser
+      - createdb
+    keycloak-user: []
+  databases:
+    keycloak: keycloak-admin
+  postgresql:
+    version: "14"
+{{- end }}
