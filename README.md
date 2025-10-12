@@ -1,6 +1,17 @@
 # ChainOfCustody
 Chain of Custody PoC using Hyperledger Fabric with access control by Hyperledger Identus.
 
+Fabric repository: https://github.com/hyperledger/fabric 
+Identus Cloud Agent repository: https://github.com/hyperledger-identus/cloud-agent 
+
+
+# Prerequisits
+## Hyperledger Fabric Prerequisits:
+    https://hyperledger-fabric.readthedocs.io/en/latest/prereqs.html 
+## Python
+    At ./SSI-App/requirements.txt
+
+
 
 # How to Run:
 ## Sets up Fabric network and gateway app:
@@ -41,5 +52,3 @@ Chain of Custody PoC using Hyperledger Fabric with access control by Hyperledger
     5. As Issuer, issue an Anoncreds Credential to the Holder.
     6. Now the Holder can create evidences and perform other operations using
     the Chain of Custody App.
-
-# ToDo:  -python requirements and add link to fabrics requisites. Add link to identus repository
