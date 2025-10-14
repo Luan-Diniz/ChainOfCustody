@@ -126,17 +126,19 @@ async def create_credential_offer_anoncreds(
     data = {
         "connectionId": connection_id,
         "credentialFormat": "AnonCreds",
-        "claims": {
-            "expert_name": credential_data.expert_name,
-            "issuing_judge_id": credential_data.issuing_judge_id,
-            "evidence_hash": credential_data.evidence_hash,
-            "authorization_level": credential_data.authorization_level,
-            "court_jurisdiction" : credential_data.court_jurisdiction,
-            "subject_did" : credential_data.subject_did
-        },
-        "issuingDID": issuer_did,
-        "credentialDefinitionId": credential_definition_id,
-        "validityPeriod": validity_period_in_seconds
+        "anoncredsVcPropertiesV1": {
+            "claims": {
+                "expert_name": credential_data.expert_name,
+                "issuing_judge_id": credential_data.issuing_judge_id,
+                "evidence_hash": credential_data.evidence_hash,
+                "authorization_level": credential_data.authorization_level,
+                "court_jurisdiction" : credential_data.court_jurisdiction,
+                "subject_did" : credential_data.subject_did
+            },
+            "issuingDID": issuer_did,
+            "credentialDefinitionId": credential_definition_id,
+            "validityPeriod": validity_period_in_seconds
+        }
     }
 
     async with aiohttp.ClientSession() as session:

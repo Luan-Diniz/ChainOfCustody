@@ -21,7 +21,7 @@ Identus Cloud Agent repository: https://github.com/hyperledger-identus/cloud-age
 
 ## Sets up Identus Agents
     From root project folder at terminal 2:
-    cd cloud-agent-2.0.0/examples/st-multi
+    cd identus-agent-2.0.0/st-multi
     docker compose up -d
 
 ## Sets up SSI-App services:

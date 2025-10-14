@@ -1,9 +1,0 @@
-dependencies:
-- name: vault
-  repository: https://helm.releases.hashicorp.com
-  version: 0.24.1
-- name: keycloak
-  repository: https://charts.bitnami.com/bitnami
-  version: 17.2.0
-digest: sha256:33f82ebad234a60fd00365d1dcc6ed884beeac1c13ee4cbeca08a1478eded850
-generated: "2023-11-16T20:59:38.47688305+07:00"

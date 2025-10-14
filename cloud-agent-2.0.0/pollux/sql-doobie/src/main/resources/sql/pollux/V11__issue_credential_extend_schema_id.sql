@@ -1,1 +1,0 @@
-ALTER TABLE public.issue_credential_records ALTER COLUMN "schema_id" TYPE VARCHAR(500);
