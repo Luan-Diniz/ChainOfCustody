@@ -12,7 +12,8 @@ import { create_evidence, get_chain_of_custody,
 
 const PORT = 3000;
 const MONGO_URI = 'mongodb://root:password@localhost:27017/?authSource=admin';
-const VERIFIER_API_URL = 'http://localhost:5017'
+const VERIFIER_API_URL = 'http://localhost:5017' ;
+const MOCK_DB_BASE_URL = 'http://localhost:49152';
 
 const identifier = '123'; // Simulates an identifier generation for a request
 
@@ -63,7 +64,7 @@ app.post('/create-evidence', async (req: Request, res: Response) => {
             
             // --- Fetch Credential Definition ---
             console.log('Fetching credential definition...');
-            const credDefResponse = await axios.get('http://localhost:49152/credential-definition');
+            const credDefResponse = await axios.get(`${MOCK_DB_BASE_URL}/credential-definition`);
             const { credential_guid, connectionId } = credDefResponse.data;
 
             // --- Request Presentation ---
@@ -163,7 +164,7 @@ app.post('/chain-of-custody', async (req: Request, res: Response) => {
         console.log(`Received request to fetch chain of custody for credential: ${credentialId}`);
 
         // --- Fetch Credential Definition ---
-        const credDefResponse = await axios.get('http://localhost:49152/credential-definition');
+        const credDefResponse = await axios.get(`${MOCK_DB_BASE_URL}/credential-definition`);
         const { credential_guid, connectionId } = credDefResponse.data;
 
         // --- Request Presentation ---
@@ -234,7 +235,7 @@ app.post('/verify-chain-of-custody', async (req: Request, res: Response) => {
 
         console.log(`Received request to verify chain for credential: ${credentialId}`);
         // --- Fetch Credential Definition ---
-        const credDefResponse = await axios.get('http://localhost:49152/credential-definition');
+        const credDefResponse = await axios.get(`${MOCK_DB_BASE_URL}/credential-definition`);
         const { credential_guid, connectionId } = credDefResponse.data;
         // --- Request Presentation ---
         await axios.post(`${VERIFIER_API_URL}/presentation_request`, {
@@ -319,7 +320,7 @@ app.post('/update-evidence', async (req: Request, res: Response) => {
 
         // Perform credential verification
         console.log('Fetching credential definition for update...');
-        const credDefResponse = await axios.get('http://localhost:49152/credential-definition');
+        const credDefResponse = await axios.get(`${MOCK_DB_BASE_URL}/credential-definition`);
         const { credential_guid, connectionId } = credDefResponse.data;
 
         console.log(`Requesting presentation for update with identifier: ${identifier}`);
@@ -434,7 +435,7 @@ app.post('/transfer-ownership', async (req: Request, res: Response) => {
 
         // 2. Perform DID verification for the current owner
         console.log('Fetching credential definition for ownership transfer...');
-        const credDefResponse = await axios.get('http://localhost:49152/credential-definition');
+        const credDefResponse = await axios.get(`${MOCK_DB_BASE_URL}/credential-definition`);
         const { credential_guid, connectionId } = credDefResponse.data;
 
         console.log(`Requesting presentation for transfer with identifier: ${identifier}`);
