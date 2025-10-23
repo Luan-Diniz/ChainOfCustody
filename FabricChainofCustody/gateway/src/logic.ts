@@ -175,6 +175,21 @@ export async function get_credential_id_by_evidence_hash(
 
 
 
+
+
+
+
+// --- SMART CONTRACT COMMUNICATION
+
+interface Asset {
+    status: string;
+    timestamp: string;
+    owner_did: string;
+    issuer_did: string;
+    credential_id: string;
+    credential_hash: string;
+    last_modifier_did: string;
+}
 /**
  * Create a new credential 
  * assetID is the credential ID (did)
@@ -196,21 +211,7 @@ export async function createAsset(contract: Contract, assetID: string, owner_did
     );
 
     //console.log(`*** Credential ${assetID} successfully created`);
-}
 
-
-
-
-// --- SMART CONTRACT COMMUNICATION
-
-interface Asset {
-    status: string;
-    timestamp: string;
-    owner_did: string;
-    issuer_did: string;
-    credential_id: string;
-    credential_hash: string;
-    last_modifier_did: string;
 }
 /**
  * Reads a credential by its ID from the ledger and returns it as a typed Asset object.

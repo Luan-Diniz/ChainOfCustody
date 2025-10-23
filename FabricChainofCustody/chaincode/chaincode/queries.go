@@ -8,7 +8,10 @@ import (
 )
 
 // ReadAsset retrieves a credential from the ledger by its ID.
-func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, credentialID string) (*Asset, error) {
+func (s *SmartContract) ReadAsset(
+		ctx contractapi.TransactionContextInterface,
+		credentialID string) (*Asset, error) {
+
 	assetJSON, err := ctx.GetStub().GetState(credentialID)
 	if err != nil {
 		return nil, fmt.Errorf("falha ao ler do world state: %v", err)
@@ -26,7 +29,9 @@ func (s *SmartContract) ReadAsset(ctx contractapi.TransactionContextInterface, c
 }
 
 // AssetExists checks whether a credential with the specified ID exists in the ledger.
-func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface, credentialID string) (bool, error) {
+func (s *SmartContract) AssetExists(ctx contractapi.TransactionContextInterface,
+	 	credentialID string) (bool, error) {
+
 	assetJSON, err := ctx.GetStub().GetState(credentialID)
 	if err != nil {
 		return false, fmt.Errorf("falha ao ler do world state: %v", err)

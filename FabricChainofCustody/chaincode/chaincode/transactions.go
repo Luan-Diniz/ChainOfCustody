@@ -14,20 +14,23 @@ type SmartContract struct {
 }
 
 // Asset represents a verifiable credential on the ledger.
-// The field CredentialHash has been added.
 type Asset struct {
 	Status          string `json:"status"`            // "active" or "revoked"
 	Timestamp       string `json:"timestamp"`         // ISO8601 format or Unix timestamp
 	OwnerDID        string `json:"owner_did"`         // Credential owner's DID
 	IssuerDID       string `json:"issuer_did"`        // Issuer's DID
 	CredentialID    string `json:"credential_id"`     // Unique identifier of the credential
-	CredentialHash  string `json:"credential_hash"`   // Change: Hash of the original credential
+	CredentialHash  string `json:"credential_hash"`
 	LastModifierDID string `json:"last_modifier_did"` // DID of the last modifier
 }
 
 
 // CreateAsset creates a new credential on the ledger.
-func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface, credentialID string, status string, issuerDID string, ownerDID string, credentialHash string, timestamp string) error {
+func (s *SmartContract) CreateAsset(
+		ctx contractapi.TransactionContextInterface,
+		credentialID string, status string, issuerDID string,
+		ownerDID string, credentialHash string, timestamp string) error {
+
 	exists, err := s.AssetExists(ctx, credentialID)
 	if err != nil {
 		return err
@@ -54,7 +57,9 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
 }
 
 // TransferOwnership updates the owner (OwnerDID) of an existing credential.
-func (s *SmartContract) TransferOwnership(ctx contractapi.TransactionContextInterface, credentialID string, newOwnerDID string) error {
+func (s *SmartContract) TransferOwnership(ctx contractapi.TransactionContextInterface,
+	 	credentialID string, newOwnerDID string) error {
+
 	asset, err := s.ReadAsset(ctx, credentialID)
 	if err != nil {
 		return err
@@ -72,7 +77,9 @@ func (s *SmartContract) TransferOwnership(ctx contractapi.TransactionContextInte
 
 
 // RevokeAsset changes the status of a credential to "revoked".
-func (s *SmartContract) RevokeAsset(ctx contractapi.TransactionContextInterface, credentialID string) error {
+func (s *SmartContract) RevokeAsset(ctx contractapi.TransactionContextInterface,
+		credentialID string) error {
+			
 	asset, err := s.ReadAsset(ctx, credentialID)
 	if err != nil {
 		return err
