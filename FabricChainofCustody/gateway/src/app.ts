@@ -450,8 +450,8 @@ app.post('/transfer-ownership', async (req: Request, res: Response) => {
         console.log(verified_data['requested_proof']['revealed_attrs']);
         const proven_did = verified_data['requested_proof']['revealed_attrs']['subject_did_proof']['raw'];
 
-        if (level_required !== 99 && current_owner_did !== proven_did) {
-            res.status(400).json({ error: `Invalid DIDs! Verification failed.` });
+        if (current_owner_did !== proven_did) {
+            res.status(400).json({ error: `Invalid DIDs! The proven DID does not match the 'current_owner_did' in the request.` });
             return;
         }
 

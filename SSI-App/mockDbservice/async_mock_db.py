@@ -68,6 +68,10 @@ class AsyncMockDB:
             if identifier not in self._verified_data:
                 return None
             return self._verified_data[identifier]
+    async def delete_verified_data(self, identifier):
+        async with self._lock:
+            if identifier in self._verified_data:
+                del self._verified_data[identifier]
 
     
 

@@ -12,8 +12,14 @@ Identus Cloud Agent repository: https://github.com/hyperledger-identus/cloud-age
     At ./SSI-App/requirements.txt
 
 
-
 # How to Run:
+PS: Install the requirements.txt Python requirements before
+running Holder and Issuer interfaces.
+Using a virtual environment (venv) is advised.
+``
+pip install -r requirements.txt
+``
+
 ## Sets up Fabric network and gateway app:
     From root project folder at terminal 1:
     cd FabricChainofCustody

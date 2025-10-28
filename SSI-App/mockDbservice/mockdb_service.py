@@ -101,6 +101,12 @@ async def add_verified_data(payload: VerifiedData):
     await db.add_verified_data(payload.identifier, payload.data)
     return {"message": "Successfully added that verified data."}
 
+
+@app.delete("/verified-data/{identifier}", status_code=200)
+async def delete_verified_data(identifier: str):
+    await db.delete_verified_data(identifier)
+    return {"message": f"Verified data for identifier '{identifier}' deleted (if it existed)."}
+
 # --- Uvicorn Runner ---
 # uvicorn mockdb_service:app --reload
 if __name__ == "__main__":

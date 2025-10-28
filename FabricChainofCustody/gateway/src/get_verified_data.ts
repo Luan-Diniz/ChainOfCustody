@@ -14,7 +14,7 @@ export async function pollForVerifiedData(
   identifier: string,
   options: PollOptions = {}
 ): Promise<any> {
-  const { intervalMs = 2000, maxAttempts = 5 } = options; // Default: 2s interval, 30s timeout
+  const { intervalMs = 2000, maxAttempts = 5 } = options; // Default: 2s interval, 10s total (5 * 2s)
   const url = `${MOCK_DB_BASE_URL}/verified-data/${identifier}`;
 
   console.log(`Polling for data with identifier "${identifier}"...`);
@@ -25,7 +25,21 @@ export async function pollForVerifiedData(
       // Try to fetch the data
       const response = await axios.get(url);
 
-      return JSON.parse(response.data);
+      // Data found, parse it before deleting
+      const data = JSON.parse(response.data);
+
+      // Now, delete the data from the mock DB
+      try {
+        await axios.delete(url);
+        console.log('...Data deleted successfully.');
+      } catch (deleteError) {
+        // Log the deletion error, but don't stop the process
+        // The primary goal (getting the data) was successful.
+        console.warn(`Could not delete data at ${url}:`, deleteError);
+      }
+
+      // Return the data we successfully retrieved
+      return data;
 
     } catch (error) {
       const axiosError = error as AxiosError;
@@ -40,7 +54,9 @@ export async function pollForVerifiedData(
     }
 
     // Wait for the specified interval before the next attempt
-    await new Promise(resolve => setTimeout(resolve, intervalMs));
+    if (attempt < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, intervalMs));
+    }
   }
 
   // If the loop finishes, we've timed out.
