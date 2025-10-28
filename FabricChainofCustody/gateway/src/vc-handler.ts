@@ -24,19 +24,17 @@ export interface CredentialSubjectData {
 
 
 /**
- * Cria uma nova Credencial Verificável (VC) no formato JWT.
+ * Create a new Verifiable Credential using JWT format.
  */
 export async function createCredential(subject_data: CredentialSubjectData,
                                        issuer: Issuer
                                     ): Promise<string> 
 {
-
     console.log("🔑 Gerando DID do emissor e criando a credencial...");
-
-    // ******** Usando importação dinâmica para módulos ESM *********
+    // ******** Dynamic importing for ESM modules *********
     const { createVerifiableCredentialJwt } = await import('did-jwt-vc');
 
-    // 3. Definir o payload (claims) da VC
+    // VC claims
     const vcPayload = {
         '@context': ['https://www.w3.org/2018/credentials/v1'],
         type: ['VerifiableCredential', 'Evidence'],
@@ -45,31 +43,29 @@ export async function createCredential(subject_data: CredentialSubjectData,
         credentialSubject: subject_data,
     };
 
-    // 4. Criar e assinar a VC no formato JWT
+    // Create and sign a VC using JWT format.
     const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer);
-    
-    //console.log('\n✅ Credencial JWT gerada com sucesso!');
     //console.log(vcJwt);
 
     return vcJwt;
 }
 
 /**
- * Verifica a autenticidade e integridade de uma Credencial Verificável em formato JWT.
+ * Verifies the authenticity and integrity of a Verifiable Credential in JWT format.
  */
 export async function verifyCreatedCredential(vcJwt: string): Promise<VerifiedCredential> {
-    // ******** Usando importação dinâmica para módulos ESM *********
+    // ******** Dynamic importing for ESM modules *********
     const { verifyCredential } = await import('did-jwt-vc');
     const { Resolver } = await import('did-resolver');
     const { getResolver: getKeyResolver } = await import('key-did-resolver');
 
-    // 1. Configurar o resolver
+    // Sets up the resolver
     const keyResolver = getKeyResolver();
     const resolver = new Resolver({
         ...keyResolver
     });
 
-    // 2. Verificar a credencial
+    // Verifies Credential
     try {
         const verifiedVc = await verifyCredential(vcJwt, resolver);
         console.log('\n✅ Verificação concluída com sucesso!');

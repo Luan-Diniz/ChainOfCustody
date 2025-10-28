@@ -7,6 +7,7 @@ import { DatabaseHandler, CustodyCredentialRecord } from './database-handler';
 
 const utf8Decoder = new TextDecoder();
 
+
 export async function create_evidence(
                 subject_data: CredentialSubjectData, issuer: Issuer,
                 dbHandler: DatabaseHandler, RecordData: CustodyCredentialRecord, contract: Contract): Promise<string> {
@@ -24,98 +25,55 @@ export async function create_evidence(
         // Stores some data in blockchain.
         await createAsset(contract, RecordData.credentialId, RecordData.ownerDid, RecordData.issuerDid, credentialHash);
 
-
         return RecordData.credentialId;
 }
 
 export async function transfer_evidence_ownership(
     credential_id: string, new_owner_did: string,
     dbHandler: DatabaseHandler, contract: Contract): Promise<void> {
-    //  Change owner --> in blockchain data and db data.
-    // Muda o owner, mas não o "last_modifier_did"
+    // Change owner --> in blockchain data and db data.
+    // Changes owner, but not the "last_modifier_did" field
     await dbHandler.updateRecordOwner(credential_id, new_owner_did);
 
     // blockchain operation
     await transferOwnership(contract, credential_id, new_owner_did);
-
 }
 
 export async function update_evidence(old_credential_did: string,
                 subject_data: CredentialSubjectData, issuer: Issuer,
                 dbHandler: DatabaseHandler, newRecordData: CustodyCredentialRecord,
-                contract: Contract): Promise<void> { 
-
-                    const credential_record = await dbHandler.findRecordByCredentialId(old_credential_did);
-                    if (credential_record?.sequence) {
-                        // Calculates sequence number
-                        newRecordData.sequence = credential_record.sequence + 1;
-                    }
-
-
-                    // Creates new credential.
-                    const vcJwt = await createCredential(subject_data, issuer);
-                    newRecordData.vcJwt = vcJwt;
-                    newRecordData.evidencehash = subject_data.evidence_hash;
-                    newRecordData.last_modifier_did = newRecordData.ownerDid;
-                    newRecordData.previousCredentialId = old_credential_did;
-
-
-                    await dbHandler.createRecord(newRecordData);
-
-                    const credentialHash = createHash('sha256').update(vcJwt).digest('hex');
-                    // Stores data of the new credential in blockchain.
-                    await createAsset(contract, newRecordData.credentialId, newRecordData.ownerDid,
-                                        newRecordData.issuerDid, credentialHash
-                                    );
-
-                    // Change status of old credential in database
-                    await dbHandler.updateRecordStatus(old_credential_did, "revoked");
-                    
-                    // Change status of old credential in blockchain.
-                    await revokeAsset(contract, old_credential_did);
-}
-
-
-
-
- export async function verify_chain_of_custody(
-        chain_of_custody: Array<{databaseRecord: CustodyCredentialRecord, ledgerData: Asset}>
-    ) : Promise<Array<VerifiedCredential>> {
-
-    let payloads: Array<VerifiedCredential> = [];
-
-    for (const [index, link] of chain_of_custody.entries()) {
-        try {
-            // Verify whether the credential hash matches the one stored in the ledger
-            const calculatedHash = createHash('sha256').update(link.databaseRecord.vcJwt).digest('hex');
-
-            if (link.ledgerData.credential_id !== link.databaseRecord.credentialId) {
-                throw new Error(`Credentials id do not match at index ${index}.`);
-            }
-
-            if (calculatedHash !== link.ledgerData.credential_hash) {
-                // Throws a specific error if the hash does not match
-                throw new Error(`Hash mismatch for credential at index ${index}.`);
-            }
-
-            // 2. Verify the authenticity and integrity of the JWT credential
-            // 'await' here will pause the loop, as expected.
-            const verified_credential = await verifyCreatedCredential(link.databaseRecord.vcJwt);
-            payloads.push(verified_credential);
-            
-
-        } catch (error: any) {
-            // Capture verification errors either from hash either from credential.
-            console.error(`Failed to verify credential ${index} in the chain of custody:`, error.message);
-            throw error; 
-        }
+                contract: Contract): Promise<void> 
+{ 
+    const credential_record = await dbHandler.findRecordByCredentialId(old_credential_did);
+    if (credential_record?.sequence) {
+        // Calculates sequence number
+        newRecordData.sequence = credential_record.sequence + 1;
     }
 
-    return payloads;
 
- }
+    // Creates new credential.
+    const vcJwt = await createCredential(subject_data, issuer);
+    newRecordData.vcJwt = vcJwt;
+    newRecordData.evidencehash = subject_data.evidence_hash;
+    newRecordData.last_modifier_did = newRecordData.ownerDid;
+    newRecordData.previousCredentialId = old_credential_did;
 
- 
+
+    await dbHandler.createRecord(newRecordData);
+
+    const credentialHash = createHash('sha256').update(vcJwt).digest('hex');
+    // Stores data of the new credential in blockchain.
+    await createAsset(contract, newRecordData.credentialId, newRecordData.ownerDid,
+                        newRecordData.issuerDid, credentialHash
+                    );
+
+    // Change status of old credential in database
+    await dbHandler.updateRecordStatus(old_credential_did, "revoked");
+    
+    // Change status of old credential in blockchain.
+    await revokeAsset(contract, old_credential_did);
+}
+
 /**
  * Retrieves the entire chain of custody for a given credential ID.
  * It traverses the credential history by recursively looking up the previous credential ID.
@@ -137,7 +95,7 @@ export async function get_chain_of_custody(credential_id: string, dbHandler: Dat
         // Fetch the record from your local database.
         const cred_record = await dbHandler.findRecordByCredentialId(current_cred_id) as CustodyCredentialRecord;
         
-        // Fetch the corresponding asset data from the ledger, now strongly typed.
+        // Fetch the corresponding asset data from the ledger
         const ledger_data = await readAssetByID(contract, current_cred_id);
         
         // Store the combined results as an object in our list.
@@ -164,16 +122,47 @@ export async function get_chain_of_custody(credential_id: string, dbHandler: Dat
     return chainOfCustody;
 }
 
+ export async function verify_chain_of_custody(
+        chain_of_custody: Array<{databaseRecord: CustodyCredentialRecord, ledgerData: Asset}>
+    ) : Promise<Array<VerifiedCredential>> {
+
+    let payloads: Array<VerifiedCredential> = [];
+    for (const [index, link] of chain_of_custody.entries()) {
+        try {
+            // Verify whether the credential hash matches the one stored in the ledger
+            const calculatedHash = createHash('sha256').update(link.databaseRecord.vcJwt).digest('hex');
+
+            if (link.ledgerData.credential_id !== link.databaseRecord.credentialId) {
+                throw new Error(`Credentials id do not match at index ${index}.`);
+            }
+
+            if (calculatedHash !== link.ledgerData.credential_hash) {
+                // Throws a specific error if the hash does not match
+                throw new Error(`Hash mismatch for credential at index ${index}.`);
+            }
+
+            // 2. Verify the authenticity and integrity of the JWT credential
+            const verified_credential = await verifyCreatedCredential(link.databaseRecord.vcJwt);
+            payloads.push(verified_credential);
+            
+
+        } catch (error: any) {
+            // Capture verification errors either from hash either from credential.
+            console.error(`Failed to verify credential ${index} in the chain of custody:`, error.message);
+            throw error; 
+        }
+    }
+
+    return payloads;
+ }
+
+
 export async function get_credential_id_by_evidence_hash(
     evidence_hash: string, dbHandler: DatabaseHandler) : Promise<string | null> {
     const credential_id = await dbHandler.findActiveCredentialByEvidenceHash(evidence_hash);
     
     return credential_id;
 }
-
-
-
-
 
 
 
@@ -191,7 +180,7 @@ interface Asset {
     last_modifier_did: string;
 }
 /**
- * Create a new credential 
+ * Create a new credential asset in blockchain
  * assetID is the credential ID (did)
  */
 export async function createAsset(contract: Contract, assetID: string, owner_did: string,
@@ -211,8 +200,8 @@ export async function createAsset(contract: Contract, assetID: string, owner_did
     );
 
     //console.log(`*** Credential ${assetID} successfully created`);
-
 }
+
 /**
  * Reads a credential by its ID from the ledger and returns it as a typed Asset object.
  * @param {Contract} contract The contract instance.
@@ -228,7 +217,6 @@ export async function readAssetByID(contract: Contract, assetId: string): Promis
     // We cast the parsed JSON to our Asset interface to get type safety.
     const result = JSON.parse(resultJson) as Asset;
     
-
     return result;
 }
 

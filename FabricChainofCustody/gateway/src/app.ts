@@ -448,9 +448,9 @@ app.post('/transfer-ownership', async (req: Request, res: Response) => {
 
         const verified_data = await pollForVerifiedData(identifier);
         console.log(verified_data['requested_proof']['revealed_attrs']);
-        const subject_did = verified_data['requested_proof']['revealed_attrs']['subject_did_proof']['raw'];
+        const proven_did = verified_data['requested_proof']['revealed_attrs']['subject_did_proof']['raw'];
 
-        if (level_required !== 99 && current_owner_did !== subject_did) {
+        if (level_required !== 99 && current_owner_did !== proven_did) {
             res.status(400).json({ error: `Invalid DIDs! Verification failed.` });
             return;
         }
