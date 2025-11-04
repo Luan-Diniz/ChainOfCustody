@@ -22,14 +22,15 @@ type Asset struct {
 	CredentialID    string `json:"credential_id"`     // Unique identifier of the credential
 	CredentialHash  string `json:"credential_hash"`
 	LastModifierDID string `json:"last_modifier_did"` // DID of the last modifier
+	PreviousCredentialID string `json:"previous_credential_id"`
 }
 
 
 // CreateAsset creates a new credential on the ledger.
 func (s *SmartContract) CreateAsset(
-		ctx contractapi.TransactionContextInterface,
-		credentialID string, status string, issuerDID string,
-		ownerDID string, credentialHash string, timestamp string) error {
+	ctx contractapi.TransactionContextInterface,
+	credentialID string, status string, issuerDID string,
+	ownerDID string, credentialHash string, timestamp string, previousCredentialID string) error {
 
 	exists, err := s.AssetExists(ctx, credentialID)
 	if err != nil {
@@ -40,13 +41,14 @@ func (s *SmartContract) CreateAsset(
 	}
 
 	asset := Asset{
-		CredentialID:    credentialID,
-		Status:          status,
-		IssuerDID:       issuerDID,
-		OwnerDID:        ownerDID,
-		CredentialHash:  credentialHash,
-		Timestamp:       timestamp,
-		LastModifierDID: ownerDID, 
+		CredentialID:         credentialID,
+		Status:               status,
+		IssuerDID:            issuerDID,
+		OwnerDID:             ownerDID,
+		CredentialHash:       credentialHash,
+		Timestamp:            timestamp,
+		LastModifierDID:      ownerDID,
+		PreviousCredentialID: previousCredentialID,
 	}
 	assetJSON, err := json.Marshal(asset)
 	if err != nil {

@@ -23,7 +23,8 @@ export async function create_evidence(
 
         const credentialHash = createHash('sha256').update(vcJwt).digest('hex');
         // Stores some data in blockchain.
-        await createAsset(contract, RecordData.credentialId, RecordData.ownerDid, RecordData.issuerDid, credentialHash);
+        await createAsset(contract, RecordData.credentialId, RecordData.ownerDid,
+             RecordData.issuerDid, credentialHash,"");
 
         return RecordData.credentialId;
 }
@@ -64,7 +65,7 @@ export async function update_evidence(old_credential_did: string,
     const credentialHash = createHash('sha256').update(vcJwt).digest('hex');
     // Stores data of the new credential in blockchain.
     await createAsset(contract, newRecordData.credentialId, newRecordData.ownerDid,
-                        newRecordData.issuerDid, credentialHash
+                        newRecordData.issuerDid, credentialHash, old_credential_did
                     );
 
     // Change status of old credential in database
@@ -135,13 +136,26 @@ export async function get_chain_of_custody(credential_id: string, dbHandler: Dat
             if (link.ledgerData.credential_id !== link.databaseRecord.credentialId) {
                 throw new Error(`Credentials id do not match at index ${index}.`);
             }
-
             if (calculatedHash !== link.ledgerData.credential_hash) {
                 // Throws a specific error if the hash does not match
                 throw new Error(`Hash mismatch for credential at index ${index}.`);
             }
+            // If empty string, converts it to null so it can be compared with the database.
+            const ledgerPrevId = link.ledgerData.previous_credential_id === "" ? null : link.ledgerData.previous_credential_id;
+            if (ledgerPrevId !== link.databaseRecord.previousCredentialId) {
+                throw new Error(`Previous credential link mismatch at index ${index}.`);
+            }
+            if (link.ledgerData.status !== link.databaseRecord.status) {
+                throw new Error(`Status mismatch at index ${index}.`);
+            }
+            if (link.ledgerData.credential_id !== link.databaseRecord.credentialId) {
+                throw new Error(`Credentials id do not match at index ${index}.`);
+            }
+            if (link.ledgerData.issuer_did !== link.databaseRecord.issuerDid) {
+                throw new Error(`Issuer DID mismatch at index ${index}.`);
+            }
 
-            // 2. Verify the authenticity and integrity of the JWT credential
+            // Verify the authenticity and integrity of the JWT credential
             const verified_credential = await verifyCreatedCredential(link.databaseRecord.vcJwt);
             payloads.push(verified_credential);
             
@@ -178,13 +192,15 @@ interface Asset {
     credential_id: string;
     credential_hash: string;
     last_modifier_did: string;
+    previous_credential_id: string;
 }
 /**
  * Create a new credential asset in blockchain
  * assetID is the credential ID (did)
  */
 export async function createAsset(contract: Contract, assetID: string, owner_did: string,
-     issuer_did: string, credential_hash: string): Promise<void> {
+     issuer_did: string, credential_hash: string,
+    previous_credential_id: string): Promise<void> {
     //console.log('\n--> Submit Transaction: CreateAsset, creates a new credential');
     const status = 'active';
     const timestamp = new Date().toISOString();
@@ -197,6 +213,7 @@ export async function createAsset(contract: Contract, assetID: string, owner_did
         owner_did,
         credential_hash,
         timestamp,
+        previous_credential_id
     );
 
     //console.log(`*** Credential ${assetID} successfully created`);
