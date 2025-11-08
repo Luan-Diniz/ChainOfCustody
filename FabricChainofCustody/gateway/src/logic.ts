@@ -51,7 +51,6 @@ export async function update_evidence(old_credential_did: string,
         newRecordData.sequence = credential_record.sequence + 1;
     }
 
-
     // Creates new credential.
     const vcJwt = await createCredential(subject_data, issuer);
     newRecordData.vcJwt = vcJwt;
