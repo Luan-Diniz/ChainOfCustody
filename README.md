@@ -47,7 +47,7 @@ pip install -r requirements.txt
 
 # Cleaning environment:
     At ./FabricChainofCustody there is a stop.sh.
-    At ./cloud-agent-2.0.0/examples/st-multi run docker compose down -v 
+    At ./identus-agent-2.0.0/st-multi run docker compose down -v 
     At ./SSI-App run ./stop_services.sh
 
 # Demo:
@@ -58,3 +58,22 @@ pip install -r requirements.txt
     5. As Issuer, issue an Anoncreds Credential to the Holder.
     6. Now the Holder can create evidences and perform other operations using
     the Chain of Custody App.
+
+# Automated Benchmark & Performance Testing:
+To run the automated performance evaluation suite instead of manual CLI interaction:
+
+1. Ensure all background services are running (Fabric, Identus agents, and SSI-App services).
+2. Run the benchmark:
+   ```bash
+   cd SSI-App
+   # Check service health
+   ./run_benchmark.sh --check-health
+
+   # Run N iterations (e.g. 30)
+   ./run_benchmark.sh -n 30
+   ```
+3. Raw metrics and statistical summaries (mean, median, standard deviation, min, max, P95) are exported to:
+   - `SSI-App/benchmark_results/benchmark_raw_latest.csv`
+   - `SSI-App/benchmark_results/benchmark_summary_latest.json`
+
+Detailed explanations of the 3 phases, the 11 measured milestones, and the Phase 3 latency breakdown are documented in [SSI-App/README.md](SSI-App/README.md).

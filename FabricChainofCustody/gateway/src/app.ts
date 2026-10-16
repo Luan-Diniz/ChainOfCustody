@@ -316,6 +316,7 @@ app.post('/update-evidence', async (req: Request, res: Response) => {
         const evidence_hash_from_record = oldRecord.evidencehash;
         if (evidence_hash_from_record != evidence_hash) {
             res.status(400).json({ error: 'Evidence hashes NOT MATCHING' });
+            return;
         }
 
         // Perform credential verification

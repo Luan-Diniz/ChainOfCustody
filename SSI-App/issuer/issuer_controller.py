@@ -143,6 +143,8 @@ async def create_credential_offer_anoncreds(
 
     async with aiohttp.ClientSession() as session:
         async with session.post(url, headers=headers, json=data) as response:
-            response.raise_for_status()
+            if response.status >= 400:
+                err_text = await response.text()
+                raise RuntimeError(f"Error {response.status} from {url}: {err_text}")
             result = await response.json()
             return result["thid"]
