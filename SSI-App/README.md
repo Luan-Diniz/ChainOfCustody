@@ -1,3 +1,17 @@
+# Language
+
+## Language Configuration (i18n):
+    You can configure the interface language (English or Portuguese) in `SSI-App/config.json`:
+    ```json
+    {
+      "language": "en"   // Options: "en" for English, "pt" for Portuguese
+    }
+    ```
+    (You can also temporarily override it via the environment variable `APP_LANG=pt` or `APP_LANG=en`).
+
+
+
+
 # Chain of Custody - Performance Benchmark Suite
 
 This benchmark suite evaluates the end-to-end performance and latency characteristics of the **SSI-Governed Hyperledger Fabric Digital Chain of Custody (CoC)** platform.

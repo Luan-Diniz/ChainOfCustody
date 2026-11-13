@@ -1,28 +1,35 @@
+import sys
+from pathlib import Path
+
+# Add parent directory to sys.path so i18n can be imported regardless of execution directory
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 import aiohttp
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from local_database import get_connection
 from verifier_controller import accept_presentation
 import json
+from i18n import t
 
 app = FastAPI()
 
-API_VERIFIER_URL="http://localhost:5017"
+API_VERIFIER_URL = "http://localhost:5017"
 
 @app.post("/webhook")
 async def receive_webhook(request: Request):
     payload = await request.json() 
 
-    print("📩 Webhook recebido:")
+    print(t("webhook_received"))
     print(json.dumps(payload, indent=2))
     
-    connectionId=None
+    connectionId = None
     if (payload['type'] == 'ConnectionUpdated') and payload["data"]["state"] == 'ConnectionResponseSent':
-        connectionId=payload["data"]["connectionId"]
+        connectionId = payload["data"]["connectionId"]
         name, did = await get_connection(connectionId)
         # Could refactor in a way the user needs only one terminal (issuer_interface app)
         # But for meanings of this PoC, that's alright
-        print(f"Conexão aceita com {name}, de DID {did}")
+        print(t("connection_accepted", name=name, did=did))
 
     elif (payload['type'] == "PresentationUpdated") and payload["data"]["status"] == "PresentationVerified":
         #await accept_presentation(payload["data"]["presentationId"])
@@ -32,10 +39,9 @@ async def receive_webhook(request: Request):
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=data) as response:
                 if response.status == 200:
-                    print("Verifier accepted the data successfully.")
+                    print(t("verifier_accepted_data"))
                 else:
-                    print(f"Error calling verifier API: {response.status} {await response.text()}")
-
+                    print(t("error_calling_verifier", status=response.status, text=await response.text()))
 
     return JSONResponse({"status": "success"})
 
