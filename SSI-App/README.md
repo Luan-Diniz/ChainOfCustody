@@ -2,8 +2,6 @@
 
 This benchmark suite evaluates the end-to-end performance and latency characteristics of the **SSI-Governed Hyperledger Fabric Digital Chain of Custody (CoC)** platform.
 
-It is designed to generate empirical, reproducible metrics for academic research, full-paper submissions, and thesis evaluation.
-
 ---
 
 ## 1. Pipeline Architecture & Execution Flow
@@ -78,7 +76,7 @@ Because all 5 operations are executed consecutively, Phase 3 evaluates the full 
 
 ---
 
-## 3. Measured Milestones & Paper Reference Table
+## 3. Measured Milestones
 
 | # | Milestone Name | Subsystem | Protocol / Endpoint | Academic Significance |
 |---|---|---|---|---|
@@ -141,4 +139,4 @@ All results are automatically exported to `SSI-App/benchmark_results/`:
   - `stdev`: Sample standard deviation
   - `min` / `max`: Lower and upper bounds
   - `p95`: 95th percentile latency
-  Directly usable for generating LaTeX tables for academic publication.
+
