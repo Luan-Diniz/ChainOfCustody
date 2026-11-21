@@ -161,6 +161,14 @@ app.post('/chain-of-custody', async (req: Request, res: Response) => {
             }
         }
 
+        let target_evidence_hash = evidence_hash;
+        if (!target_evidence_hash) {
+            const record = await dbHandler.findRecordByCredentialId(credentialId);
+            if (record) {
+                target_evidence_hash = record.evidencehash;
+            }
+        }
+
         console.log(`Received request to fetch chain of custody for credential: ${credentialId}`);
 
         // --- Fetch Credential Definition ---
@@ -179,13 +187,21 @@ app.post('/chain-of-custody', async (req: Request, res: Response) => {
         const verified_data = await pollForVerifiedData(identifier);
         console.log(verified_data['requested_proof']['revealed_attrs']);
 
-        const subject_did = verified_data['requested_proof']['revealed_attrs']['subject_did_proof']['raw']
-        const expert_name = verified_data['requested_proof']['revealed_attrs']['expert_name_proof']['raw']
-        console.log(expert_name)
+        const subject_did = verified_data['requested_proof']['revealed_attrs']['subject_did_proof']['raw'];
+        const expert_name = verified_data['requested_proof']['revealed_attrs']['expert_name_proof']['raw'];
+        const evidence_hash_cred = verified_data['requested_proof']['revealed_attrs']['evidence_hash_proof']['raw'];
+        console.log(expert_name);
 
         if (owner_did !== subject_did) {
                 res.status(400).json({ 
                     error: `Invalid DIDs!`
+                });
+                return;
+        }
+
+        if (target_evidence_hash && target_evidence_hash !== evidence_hash_cred) {
+                res.status(400).json({ 
+                    error: "Invalid evidence hash!" 
                 });
                 return;
         }
@@ -233,6 +249,14 @@ app.post('/verify-chain-of-custody', async (req: Request, res: Response) => {
             }
         }
 
+        let target_evidence_hash = evidence_hash;
+        if (!target_evidence_hash) {
+            const record = await dbHandler.findRecordByCredentialId(credentialId);
+            if (record) {
+                target_evidence_hash = record.evidencehash;
+            }
+        }
+
         console.log(`Received request to verify chain for credential: ${credentialId}`);
         // --- Fetch Credential Definition ---
         const credDefResponse = await axios.get(`${MOCK_DB_BASE_URL}/credential-definition`);
@@ -248,9 +272,15 @@ app.post('/verify-chain-of-custody', async (req: Request, res: Response) => {
         const verified_data = await pollForVerifiedData(identifier);
         console.log(verified_data['requested_proof']['revealed_attrs']);
         const subject_did = verified_data['requested_proof']['revealed_attrs']['subject_did_proof']['raw'];
+        const evidence_hash_cred = verified_data['requested_proof']['revealed_attrs']['evidence_hash_proof']['raw'];
 
         if (owner_did !== subject_did) {
             res.status(400).json({ error: `Invalid DIDs!` });
+            return;
+        }
+
+        if (target_evidence_hash && target_evidence_hash !== evidence_hash_cred) {
+            res.status(400).json({ error: "Invalid evidence hash!" });
             return;
         }
         
@@ -430,6 +460,8 @@ app.post('/transfer-ownership', async (req: Request, res: Response) => {
             return;
         }
 
+        const target_evidence_hash = evidence_hash || record.evidencehash;
+
         if (record.ownerDid !== current_owner_did) {
             level_required = 99;
         }
@@ -450,9 +482,17 @@ app.post('/transfer-ownership', async (req: Request, res: Response) => {
         const verified_data = await pollForVerifiedData(identifier);
         console.log(verified_data['requested_proof']['revealed_attrs']);
         const proven_did = verified_data['requested_proof']['revealed_attrs']['subject_did_proof']['raw'];
+        const evidence_hash_cred = verified_data['requested_proof']['revealed_attrs']['evidence_hash_proof']['raw'];
 
         if (current_owner_did !== proven_did) {
             res.status(400).json({ error: `Invalid DIDs! The proven DID does not match the 'current_owner_did' in the request.` });
+            return;
+        }
+
+        // Admin override (level 99) has jurisdictional authority and is exempt from single evidence hash binding.
+        // Standard forensic owners (level 2) must prove authorization bound to this specific evidence hash.
+        if (level_required !== 99 && target_evidence_hash && target_evidence_hash !== evidence_hash_cred) {
+            res.status(400).json({ error: "Invalid evidence hash! Cannot transfer ownership." });
             return;
         }
 
